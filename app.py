@@ -141,9 +141,35 @@ def logout():
 # Purchase Domain Form Class
 class PurchaseDomainForm(Form):
     domainname = StringField('Domain Name', [validators.Length(min=5, max=50)])
-    amount = StringField('Amount', [validators.Length(min=4, max=25)])
-    purchasedate = StringField('Purchase Date', [validators.Length(min=6, max=50)])
+    amount = StringField('Amount', [validators.Length(min=1, max=10)])
 
+
+# Domain Purchase
+@app.route('/purchasedomain', methods=['GET', 'POST'])
+@is_logged_in
+def purchasedomain():
+    form = PurchaseDomainForm(request.form)
+    if request.method == 'POST' and form.validate():
+        domainname = form.domainname.data
+        amount = form.amount.data
+
+        # Create cursor
+        cur = mysql.connection.cursor()
+        #Use username instead of id
+        # Execute query
+        username = session['username']
+        cur.execute("INSERT INTO pDomain(username, domainname, amount) VALUES(%s, %s, %s)", (username, domainname, amount))
+
+        # Commit to DB
+        mysql.connection.commit()
+
+        # Close connection
+        cur.close()
+
+        flash('Domain has been purchased', 'success')
+
+        return redirect(url_for('dashboard'))
+    return render_template('purchasedomain.html', form=form)
 
 # Dashboard
 @app.route('/dashboard')
@@ -152,6 +178,16 @@ def dashboard():
     # Create cursor
     cur = mysql.connection.cursor()
 
+    result = cur.execute("SELECT * FROM pDomain WHERE username = %s", [session['username']])		#Show all domain owned by logged in user
+    
+    pDomain = cur.fetchall()
+
+    if result > 0:
+    	return render_template('dashboard.html', pDomain = pDomain)
+    else:
+    	msg = 'No Purchased Domains Found'
+    	return render_template('dashboard.html', msg = msg)
+    #Add 'Purchase Domain' button
    
     # Close connection
     cur.close()
