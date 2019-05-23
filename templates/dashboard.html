@@ -1,6 +1,16 @@
 {% extends 'layout.html' %}
 
 {% block body %}
-  <h1>Dashboard <small> Welcome {{session.username}}</small></h1>
-  
+  <h1>Dashboard <small> Welcome {{session.username}}</small><h1>
+
+{% endblock %}
+
+{% block content %}
+{% for item in pDomain %}
+  <tr>
+      <td>{{item[1]}}</td>
+      <td>{{item[2]}}</td>
+      <td>{{item[3]}}</td>
+  </tr>
+{% endfor %}
 {% endblock %}
